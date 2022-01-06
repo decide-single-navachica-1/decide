@@ -70,7 +70,8 @@ MODULES = [
     'voting',
 ]
 
-BASEURL = 'http://localhost:8000'
+BASEURL = 'https://git.heroku.com/decide-single-navachica-1.git'
+APIS = {}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -180,3 +181,9 @@ if os.path.exists("config.jsonnet"):
 
 
 INSTALLED_APPS = INSTALLED_APPS + MODULES
+
+NOSE_ARGS = [
+    '--with-xunit'
+]
+import django_heroku
+django_heroku.settings(locals(),test_runner=False)
