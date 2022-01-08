@@ -7,6 +7,10 @@
     <link type="text/css" rel="stylesheet"
          href="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.css" />
     <link type="text/css" rel="stylesheet" href="{% static "booth/style.css" %}" />
+     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+    crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdbvue/lib/css/mdb.min.css">
 {% endblock %}
 
 {% block content %}
@@ -22,6 +26,9 @@
             <h2 v-if="!voting.start_date">Votación no comenzada</h2>
             <h2 v-else-if="!voting.end_date">Votación en curso</h2>
             <div v-else>
+            <h2>Votación finalizada</h2>
+            <h2 class="heading">Fecha y hora de inicio: [[start_date]]</h2>
+            <h2 class="heading">Fecha y hora de fin: [[end_date]]</h2>
                 <h2 class="heading">Resultados:</h2>
 
                 <table class="table table-bordered table-striped">
@@ -39,9 +46,27 @@
                             <td class="text-muted">[[opt.votes]]</td>
                         </tr>
                     </tbody>
+                    <tfoot>
+                    <tr>
+                            <th>Total:</th>
+                            <td></td>
+                            <td>[[voting.tally.length]]</td>
+                        </tr>
+                    </tfoot>
                 </table>
+                <div class="small">
+     <mdb-container>
+    <mdb-doughnut-chart
+      :data="doughnutChartData"
+      :options="doughnutChartOptions"
+      :width="600"
+      :height="300"
+    ></mdb-doughnut-chart>
+  </mdb-container>
+    
+  </div>
             </div>
-
+    
         </div>
     </div>
 {% endblock %}
@@ -51,16 +76,87 @@
     <script src="https://unpkg.com/vue"></script>
     <script src="https://unpkg.com/babel-polyfill@latest/dist/polyfill.min.js"></script>
     <script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/mdbvue/lib/index.js"></script>
+    
     <script>
+       
         var voting = {{voting|safe}};
         var app = new Vue({
             delimiters: ['[[', ']]'],
             el: '#app-visualizer',
-            data: {
-                voting: voting
+            components:{
+                mdbConteiner: mdbvue.mdbConteiner,
+                mdbDoughnutChart: mdbvue.mdbDoughnutChart,
+            },
+             data: {
+                voting: voting,
+                 doughnutChartData: {
+                  labels: ["Red", "Green", "Yellow", "Grey", "Dark Grey"],
+                  datasets: [
+                    {
+                      data: [300, 50, 100, 40, 120],
+                      backgroundColor: [
+                        "#F7464A",
+                        "#46BFBD",
+                        "#FDB45C",
+                        "#949FB1",
+                        "#4D5360"
+                      ],
+                      hoverBackgroundColor: [
+                        "#FF5A5E",
+                        "#5AD3D1",
+                        "#FFC870",
+                        "#A8B3C5",
+                        "#616774"
+                      ]
+                    }
+                  ]
+                },
+                doughnutChartOptions: {
+                  responsive: false,
+                  maintainAspectRatio: false
+                }
+            },
+            beforeMount(){
+                  let labels_chart= [];
+                  let data_chart= [];
+                  let colors = [];
+                  let hovers = [];
+                  
+                  this.voting.postproc.forEach(element => {
+                        labels_chart.push(element.option);
+                        data_chart.push(element.votes);
+                        let color = this.dynamicColors();
+                        colors.push(color+', 1)');
+                        hovers.push(color+', 0.5)');
+                    });
+                this.doughnutChartData.datasets[0].data = data_chart;
+                this.doughnutChartData.labels = labels_chart;
+                this.doughnutChartData.datasets[0].backgroundColor =colors;
+                this.doughnutChartData.datasets[0].hoverBackgroundColor =hovers;
+            },
+            computed:{
+                start_date(){
+                    let s_date = new Date(this.voting.start_date);
+                    return s_date.toLocaleDateString('es-ES') +' '+s_date.toLocaleTimeString('es-ES');
+                },
+                end_date(){
+                    let e_date = new Date(this.voting.end_date);
+                    return e_date.toLocaleDateString('es-ES')+' '+e_date.toLocaleTimeString('es-ES');
+                },
+            },
+            methods:{
+                 dynamicColors() {
+                    var r = Math.floor(Math.random() * 255);
+                    var g = Math.floor(Math.random() * 255);
+                    var b = Math.floor(Math.random() * 255);
+                  
+                    return "rgba(" + r + "," + g + "," + b;
+                },
             }
         })
+      
+        
     </script>
 </body>
 {% endblock %}
