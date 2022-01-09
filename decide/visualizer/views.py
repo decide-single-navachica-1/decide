@@ -20,3 +20,20 @@ class VisualizerView(TemplateView):
             raise Http404
 
         return context
+
+class VisualizerQuestion(TemplateView):
+    template_name = 'visualizer/all.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        try:
+            res = []
+            r = mods.get('voting', params={'question_id': 1})
+            for ri in r :
+                res.append(json.dumps(ri))
+            context['votings'] = res
+        except:
+            raise Http404
+
+       	return context

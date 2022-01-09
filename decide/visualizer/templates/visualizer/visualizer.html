@@ -50,20 +50,29 @@
                     <tr>
                             <th>Total:</th>
                             <td></td>
-                            <td>[[voting.tally.length]]</td>
+                            <td>[[total_votes]]</td>
                         </tr>
                     </tfoot>
                 </table>
-                <div class="small">
+                <div class="small d-flex flex-wrap">
      <mdb-container>
     <mdb-doughnut-chart
+    class="w-50"
       :data="doughnutChartData"
       :options="doughnutChartOptions"
       :width="600"
       :height="300"
     ></mdb-doughnut-chart>
   </mdb-container>
-    
+    <mdb-container>
+    <mdb-bar-chart
+    class="w-50"
+      :data="barChartData"
+      :options="barChartOptions"
+      :width="600"
+      :height="300"
+    ></mdb-bar-chart>
+  </mdb-container>
   </div>
             </div>
     
@@ -87,6 +96,7 @@
             components:{
                 mdbConteiner: mdbvue.mdbConteiner,
                 mdbDoughnutChart: mdbvue.mdbDoughnutChart,
+                mdbBarChart: mdbvue.mdbBarChart,
             },
              data: {
                 voting: voting,
@@ -115,17 +125,82 @@
                 doughnutChartOptions: {
                   responsive: false,
                   maintainAspectRatio: false
+                },
+                 barChartData: {
+                  labels: [
+                    "Red",
+                    "Blue",
+                    "Yellow",
+                    "Green",
+                    "Purple",
+                    "Orange"
+                  ],
+                  datasets: [
+                    {
+                    label : "Nº de votos",
+                      data: [12, 19, 3, 5, 2, 3],
+                      backgroundColor: [
+                        "rgba(255, 99, 132, 0.2)",
+                        "rgba(54, 162, 235, 0.2)",
+                        "rgba(255, 206, 86, 0.2)",
+                        "rgba(75, 192, 192, 0.2)",
+                        "rgba(153, 102, 255, 0.2)",
+                        "rgba(255, 159, 64, 0.2)"
+                      ],
+                      borderColor: [
+                        "rgba(255,99,132,1)",
+                        "rgba(54, 162, 235, 1)",
+                        "rgba(255, 206, 86, 1)",
+                        "rgba(75, 192, 192, 1)",
+                        "rgba(153, 102, 255, 1)",
+                        "rgba(255, 159, 64, 1)"
+                      ],
+                      borderWidth: 1
+                    }
+                  ]
+                },
+                barChartOptions: {
+                  responsive: false,
+                  maintainAspectRatio: false,
+                  scales: {
+                    xAxes: [
+                      {
+                        barPercentage: 1,
+                        gridLines: {
+                          display: true,
+                          color: "rgba(0, 0, 0, 0.1)"
+                        }
+                      }
+                    ],
+                    yAxes: [
+                      
+                      {
+                      ticks: {
+              beginAtZero: true
+            },
+                        gridLines: {
+                          display: true,
+                          color: "rgba(0, 0, 0, 0.1)"
+                        }
+                      }
+                    ]
+                  }
                 }
             },
             beforeMount(){
                   let labels_chart= [];
+                  let labels_bar_chart= [];
                   let data_chart= [];
+                  let data_bar_chart= [];
                   let colors = [];
                   let hovers = [];
-                  
+                  if (this.voting.postproc){
                   this.voting.postproc.forEach(element => {
-                        labels_chart.push(element.option);
-                        data_chart.push(element.votes);
+                        labels_chart.push(element.option + ' (% de votos)');
+                       labels_bar_chart.push(element.option + ' (nº de votos)');
+                        let porcentaje = element.votes * 100/this.total_votes;
+                        data_chart.push(porcentaje);
+                        data_bar_chart.push(element.votes );
                         let color = this.dynamicColors();
                         colors.push(color+', 1)');
                         hovers.push(color+', 0.5)');
@@ -134,7 +209,11 @@
                 this.doughnutChartData.labels = labels_chart;
                 this.doughnutChartData.datasets[0].backgroundColor =colors;
                 this.doughnutChartData.datasets[0].hoverBackgroundColor =hovers;
-            },
+                this.barChartData.datasets[0].data = data_bar_chart;
+                this.barChartData.labels = labels_bar_chart;
+                this.barChartData.datasets[0].backgroundColor =hovers;
+                this.barChartData.datasets[0].borderColor =colors;
+           } },
             computed:{
                 start_date(){
                     let s_date = new Date(this.voting.start_date);
@@ -144,6 +223,13 @@
                     let e_date = new Date(this.voting.end_date);
                     return e_date.toLocaleDateString('es-ES')+' '+e_date.toLocaleTimeString('es-ES');
                 },
+                total_votes(){
+                    let res = 0 ;
+                    if(this.voting.tally ){
+                        res = this.voting.tally.length;
+                    }
+                    return res;
+                }
             },
             methods:{
                  dynamicColors() {
