@@ -20,3 +20,7 @@ def finishedVotings():
 def closedVotings():
     return Voting.objects.filter(end_dateisnull=False, tally__isnull=True).count()
 
+def votingComparator(v1_id, v2_id):
+    v1 = votesOfVoting(v1_id)
+    v2 = votesOfVoting(v2_id)
+    return (v1/v2)*100
