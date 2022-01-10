@@ -30,7 +30,3 @@ def abstentions(v_id):
     v = votesOfVoting(v_id)
     c = Census.objects.filter(voting_id = v_id).count()
     return c - v
-
-def votingsOfQuestion(q_id):
-
-    return get_list_or_404(Question, id=q_id)
