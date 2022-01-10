@@ -16,6 +16,7 @@ class VisualizerView(TemplateView):
         try:
             r = mods.get('voting', params={'id': vid})
             context['voting'] = json.dumps(r[0])
+            context['abstentions'] = 1
         except:
             raise Http404
 
@@ -34,6 +35,7 @@ class VisualizerQuestion(TemplateView):
             for ri in r :
                 res.append(json.dumps(ri))
             context['votings'] = res
+            context['abstentions'] = [1, 0, 4, 5]
         except:
             raise Exception(res)
 
