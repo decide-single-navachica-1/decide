@@ -21,48 +21,10 @@
         </b-navbar>
 
         <div class="voting container">
-            <h1>[[ voting.id ]] - [[ voting.name ]]</h1>
-
-            <h2 v-if="!voting.start_date">Votación no comenzada</h2>
-            <h2 v-else-if="!voting.end_date">Votación en curso</h2>
-            <div v-else>
-            <h2>Votación finalizada</h2>
-            <h2 class="heading">Fecha y hora de inicio: [[start_date]]</h2>
-            <h2 class="heading">Fecha y hora de fin: [[end_date]]</h2>
-                <h2 class="heading">Resultados:</h2>
-
-                <table class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th>Opción</th>
-                            <th>Puntuación</th>
-                            <th>Votos</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="opt in voting.postproc" :key="opt.number">
-                            <th>[[opt.option]]</th>
-                            <td>[[opt.postproc]]</td>
-                            <td class="text-muted">[[opt.votes]]</td>
-                        </tr>
-                    </tbody>
-                    <tfoot>
-                    <tr>
-                            <th>Total:</th>
-                            <td></td>
-                            <td>[[total_votes]]</td>
-                        </tr>
-                    </tfoot>
-                </table>
+          
                 <div class="small d-flex flex-wrap col-12">
      
-    <mdb-doughnut-chart
-    class="col-6"
-      :data="doughnutChartData"
-      :options="doughnutChartOptions"
-    
-      :height="300"
-    ></mdb-doughnut-chart>
+
   
     
     <mdb-bar-chart
@@ -89,7 +51,7 @@
     
     <script>
        
-        var voting = {{voting|safe}};
+        var votings = {{votings|safe}};
         var abstentions = {{abstentions|safe}};
         var app = new Vue({
             delimiters: ['[[', ']]'],
@@ -100,34 +62,9 @@
                 mdbBarChart: mdbvue.mdbBarChart,
             },
              data: {
-                voting: voting,
+                votings: votings,
                 abstentions: abstentions,
-                 doughnutChartData: {
-                  labels: ["Red", "Green", "Yellow", "Grey", "Dark Grey"],
-                  datasets: [
-                    {
-                      data: [300, 50, 100, 40, 120],
-                      backgroundColor: [
-                        "#F7464A",
-                        "#46BFBD",
-                        "#FDB45C",
-                        "#949FB1",
-                        "#4D5360"
-                      ],
-                      hoverBackgroundColor: [
-                        "#FF5A5E",
-                        "#5AD3D1",
-                        "#FFC870",
-                        "#A8B3C5",
-                        "#616774"
-                      ]
-                    }
-                  ]
-                },
-                doughnutChartOptions: {
-                  responsive: false,
-                  maintainAspectRatio: false
-                },
+               
                  barChartData: {
                   labels: [
                     "Red",
@@ -190,59 +127,45 @@
                 }
             },
             beforeMount(){
-                  let labels_chart= [];
+                 
+                  this.barChartData.datasets.slice(0,1);
+                    this.votings.forEach((voting, index) => {
+                    
+                    voting=JSON.parse(voting);
+                  if (voting.postproc){
                   let labels_bar_chart= [];
-                  let data_chart= [];
                   let data_bar_chart= [];
                   let colors = [];
                   let hovers = [];
-                  if (this.voting.postproc){
-                  this.voting.postproc.forEach(element => {
-                        labels_chart.push(element.option + ' (% de votos)');
+                  let total_votes = voting.tally.length+this.abstentions[index];
+                  voting.postproc.forEach(element => {
+                  data_bar_chart= [];
+                  labels_bar_chart= [];
                        labels_bar_chart.push(element.option + ' (nº de votos)');
-                        let porcentaje = element.votes * 100/this.total_votes;
-                        data_chart.push(porcentaje);
                         data_bar_chart.push(element.votes );
                         let color = this.dynamicColors();
                         colors.push(color+', 1)');
                         hovers.push(color+', 0.5)');
                     });
                 labels_bar_chart.push('abstenciones'+ ' (nº de votos)');
-                labels_chart.push('abstenciones' + ' (% de votos)');
-                 let porcentaje = this.abstentions * 100/this.total_votes;
-                data_chart.push(porcentaje);
-                data_bar_chart.push(this.abstentions );
+                data_bar_chart.push(this.abstentions [index]);
                 let color = this.dynamicColors();
                 colors.push(color+', 1)');
                 hovers.push(color+', 0.5)');
-                
-                
-                this.doughnutChartData.datasets[0].data = data_chart;
-                this.doughnutChartData.labels = labels_chart;
-                this.doughnutChartData.datasets[0].backgroundColor =colors;
-                this.doughnutChartData.datasets[0].hoverBackgroundColor =hovers;
-                this.barChartData.datasets[0].data = data_bar_chart;
-                this.barChartData.labels = labels_bar_chart;
-                this.barChartData.datasets[0].backgroundColor =hovers;
-                this.barChartData.datasets[0].borderColor =colors;
-           } },
-            computed:{
-                start_date(){
-                    let s_date = new Date(this.voting.start_date);
-                    return s_date.toLocaleDateString('es-ES') +' '+s_date.toLocaleTimeString('es-ES');
-                },
-                end_date(){
-                    let e_date = new Date(this.voting.end_date);
-                    return e_date.toLocaleDateString('es-ES')+' '+e_date.toLocaleTimeString('es-ES');
-                },
-                total_votes(){
-                    let res = 0 ;
-                    if(this.voting.tally ){
-                        res = this.voting.tally.length+this.abstentions;
-                    }
-                    return res;
-                }
-            },
+                let data= {};
+                data.label =  "Nº de votos";   
+                data.data= data_bar_chart ;
+                data.backgroundColor= colors;
+                data.borderColor= hovers;
+                data.borderWidth=1;
+            
+                this.barChartData.datasets.push(data);
+                this.barChartData.labels=labels_bar_chart;
+           } })
+           
+           
+           },
+           
             methods:{
                  dynamicColors() {
                     var r = Math.floor(Math.random() * 255);
