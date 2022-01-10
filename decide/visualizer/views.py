@@ -2,6 +2,7 @@ import json
 from django.views.generic import TemplateView
 from django.conf import settings
 from django.http import Http404
+from metrics import abstentions, unstartedVotings, finishedVotings, startedVotings, closedVotings
 
 from base import mods
 
@@ -16,7 +17,7 @@ class VisualizerView(TemplateView):
         try:
             r = mods.get('voting', params={'id': vid})
             context['voting'] = json.dumps(r[0])
-            context['abstentions'] = 1
+            context['abstentions'] = abstentions(vid)
         except:
             raise Http404
 
@@ -31,11 +32,13 @@ class VisualizerQuestion(TemplateView):
         
         try:
             res = []
+            abs = []
             r = mods.get('voting', params={'question_id': vid})
             for ri in r :
                 res.append(json.dumps(ri))
+                abs.append(abstentions(ri.id))
             context['votings'] = res
-            context['abstentions'] = [1, 0, 4, 5]
+            context['abstentions'] = abs
         except:
             raise Exception(res)
 
@@ -51,10 +54,10 @@ class VisualizerAll(TemplateView):
             r = mods.get('voting')
             for ri in r :
                 res.append(json.dumps(ri))
-            unstarted = 5
-            started = 0 
-            finished = 4
-            closed = 8
+            unstarted = unstartedVotings()
+            started = startedVotings()
+            finished = finishedVotings()
+            closed = closedVotings()
             context['votings'] = res
             context['unstarted'] = unstarted
             context['started'] = started
