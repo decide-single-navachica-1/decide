@@ -22,6 +22,17 @@ class VisualizerTests(BaseTestCase):
         response = self.client.get('/visualizer/999/')
         self.assertEqual(response.status_code, 404)
         
+    def test_num_votos(self):
+        num = view.votesOfVoting(1)
+        res = 3;
+        self.assertEqual(res, num)
+
+    def test_abstenciones(self):
+        res = 1
+        abstenciones = view.abstentions(1)
+        self.assertEquals(res, abstenciones)
+
+        
   
         
 
